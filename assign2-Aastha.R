@@ -13,14 +13,7 @@ data2 <- c("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","
            6.04,7.15,9.04,10.12,5.80,5.40,6.20,6.06,7.97,6.52,9.05,5.37,3.99,6.69,5.85,5.88,4.86,5.86,7.00,8.30)
 
 #data3 for station i has committed x% energy to city j
-data3<-c(30,20,15,0,0,21,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,20,0,0,41,0,15,0,7,0,0,0,9,0,0,0,0,
-         0,10,0,0,0,0,10,0,25,5,10,0,10,0,10,0,0,10,10,0,0,0,0,80,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,
-         0,20,0,0,0,0,0,10,0,0,15,0,10,0,0,0,10,10,10,0,15,0,10,10,0,0,15,0,0,7,8,0,0,0,0,9,6,20,
-         0,15,0,3,6,9,0,15,0,11,7,0,10,0,12,0,0,14,0,0,0,0,13,7,5,6,8,4,5,5,5,5,8,4,10,5,5,4,4,2,
-         2,3,3,3,3,2,2,4,4,5,5,10,4,8,5,5,5,5,4,8,6,5,7,10,10,10,10,0,0,0,0,10,0,15,0,0,15,0,0,0,
-         0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,14,21,0,0,15,20,30,0,0,20,0,8,0,0,15,0,0,41,0,9,0,0,0,0,
-         7,0,0,6,6,6,6,6,6,6,6,8,6,0,6,0,6,0,6,4,6,4,6,5,7,8,6,5,4,5,5,8,5,8,0,10,4,0,2,2,2,3,0,0,
-         0,0,0,10,10,10,10,0,15,0,10,0,0,15,0,20,0,0,0)
+data3<-c(30,20,15,0,0,21,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,20,0,0,41,0,15,0,7,0,0,0,9,0,0,0,0,0,10,0,0,0,0,10,0,25,5,10,0,10,0,10,0,0,10,10,0,0,0,0,80,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,20,0,0,0,0,0,10,0,0,15,0,10,0,0,0,10,10,10,0,15,0,10,10,0,0,15,0,0,7,8,0,0,0,0,9,6,20,0,15,0,3,6,9,0,15,0,11,7,0,10,0,12,0,0,14,0,0,0,0,13,7,5,6,8,4,5,5,5,5,8,4,10,5,5,4,4,2,2,3,3,3,3,2,2,4,4,5,5,10,4,8,5,5,5,5,4,8,6,5,7,10,10,10,10,0,0,0,0,10,0,15,0,0,15,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,14,21,0,0,15,20,30,0,0,20,0,8,0,0,15,0,0,41,0,9,0,0,0,0,7,0,0,6,6,6,6,6,6,6,6,8,6,0,6,0,6,0,6,4,6,4,6,5,7,8,6,5,4,5,5,8,5,8,0,10,4,0,2,2,2,3,0,0,0,0,0,10,10,10,10,0,15,0,10,0,0,15,0,20,0,0,0)
 
 
 power_stations = matrix(data1,nrow=15,ncol=4)
@@ -119,27 +112,29 @@ daily_power <- function(){
   
 } 
 #solution Excercise 1
-#    demand  supply diff_supplyDemand
-#1    6.04 10.5327            4.4927
-#2    7.15 10.2328            3.0828
-#3    9.04 11.8461            2.8061
-#4   10.12 11.4582            1.3382
-#5     5.8  8.5673            2.7673
-#6     5.4  8.4815            3.0815
-#7     6.2  8.5403            2.3403
-#8    6.06 11.3211            5.2611
-#9    7.97  9.2429            1.2729
-#10   6.52  9.4478            2.9278
-#11   9.05  8.4020           -0.6480
-#12   5.37  5.8661            0.4961
-#13   3.99  6.1886            2.1986
-#14   6.69  6.9256            0.2356
-#15   5.85  6.0580            0.2080
-#16   5.88  6.5388            0.6588
-#17   4.86  5.2318            0.3718
-#18   5.86  6.2981            0.4381
-#19      7  7.0362            0.0362
-#20    8.3  8.7271            0.4271
+" Run --> daily_power()
+    demand  supply diff_supplyDemand
+1    6.04 10.5327            4.4927
+2    7.15 10.2328            3.0828
+3    9.04 11.8461            2.8061
+4   10.12 11.4582            1.3382
+5     5.8  8.5673            2.7673
+6     5.4  8.4815            3.0815
+7     6.2  8.5403            2.3403
+8    6.06 11.3211            5.2611
+9    7.97  9.2429            1.2729
+10   6.52  9.4478            2.9278
+11   9.05  8.4020           -0.6480
+12   5.37  5.8661            0.4961
+13   3.99  6.1886            2.1986
+14   6.69  6.9256            0.2356
+15   5.85  6.0580            0.2080
+16   5.88  6.5388            0.6588
+17   4.86  5.2318            0.3718
+18   5.86  6.2981            0.4381
+19      7  7.0362            0.0362
+20    8.3  8.7271            0.4271
+ "
   
 #Excercise 2
 #If the demand exceeds the supply then day is called as blackout day.If more than on part of county
@@ -186,7 +181,7 @@ imc = function(n,delta,f)
   
   pf=(total_blackOuts)/(n)
   lambda=sum/n
-  sigmasq = (sumsq + (lambda*lambda*n))/(n-1)
+  sigmasq = (sumsq - (lambda*lambda*n))/(n-1)
   se = sqrt(sigmasq/n)
   re = se/lambda
   qdelta = qnorm((1+delta)/2)
@@ -204,13 +199,15 @@ imc = function(n,delta,f)
 }
 
 #Solution to Excercise 2 Part 2(50,000 samples being used)
-#imc(50000,0.90,failure)
-#Probability of failure day: 0.61252 
-#Sample mean: 0.61252 
-#Sample variance: 0.9877205 
-#Standard error: 0.004444593 
-#0.9-confidencse interval: [0.6052093,0.6198307]
-#Mean time between failure : 0.6325998 
+" Run --> imc(50000,0.90,failure)
+
+ Probability of failure day: 0.613 
+Sample mean: 0.613 
+Sample variance: 0.2372357 
+Standard error: 0.002178237 
+0.9-confidencse interval: [0.6094171,0.6165829]
+Mean time between failure : 0.6313214 
+ "
 
 
 imc2 = function(n,delta,f,a,b)
@@ -242,10 +239,10 @@ imc2 = function(n,delta,f,a,b)
   mttf=(1/pf)-1
   cat("Probability of failure day:",pf,"\n")
   #cat("Number of samples:",n,"\n")
-  cat("Sample mean:",lambda,"\n")
-  cat("Sample variance:",sigmasq,"\n")
-  cat("Standard error:",se,"\n")
-  cat(delta,"-confidencse interval: [",ci_left,",",ci_right,"]\n",sep="")
+  #cat("Sample mean:",lambda,"\n")
+  #cat("Sample variance:",sigmasq,"\n")
+  #cat("Standard error:",se,"\n")
+  #cat(delta,"-confidencse interval: [",ci_left,",",ci_right,"]\n",sep="")
   cat("Mean time between failure :",(1/pf)-1,"\n")
   return(mttf)
 }
@@ -376,24 +373,39 @@ imc2 = function(n,delta,f,a,b)
 consortium_report <- function(){
   #upgrading each station by reducing the probability by half of origional probability
   p=vector(mode="numeric",length=15)
-  mttf_original = vector(mode="numeric",length=15)
-  mttf_upgraded = vector(mode="numeric",length=15)
+  mtbf_original = vector(mode="numeric",length=15)
+  mtbf_upgraded = vector(mode="numeric",length=15)
+  
+  
   for(i in 1:15){
     p = power_stations[ ,4]
-    mttf_original[i]=imc2(100,0.90,failure2,i,p[i])
+    mtbf_original[i]=imc2(100,0.90,failure2,i,p[i])
     
-    mttf_upgraded[i]=imc2(100,0.90,failure2,i,p[i]/2)
+    mtbf_upgraded[i]=imc2(100,0.90,failure2,i,p[i]/2)
    
     
   }
   for(i in 1:15){
-    cat(" ",mttf_upgraded[i],mttf_original[i])
-  #if(mttf_upgraded[i]-mttf_original[i] >= 4){
-  #  cat("station  number: ",power_stations[i,1],"\n")
-  #  cat("mean time between failure is: ",mttf_upgraded[i],"\n")
-  #}
+    cat("mtbf_upgraded :",mtbf_upgraded[i],"  mtbf_original :",mtbf_original[i],"\n")
+  if(mtbf_upgraded[i]-mtbf_original >= 4){
+    cat("station  number: ",power_stations[i,1],"\n")
+    cat("mean time between failure is: ",mtbf_upgraded[i],"\n")
+  }
     
   }
   
  
 }
+#Solution to Excercise 4
+# There is no station i =1,2,3,4.....15 for which the mean time between failure is extended
+# by 4 days. The difference between mtbf_original and mtbf_upgraded is not more than 0.40.
+# It generally lies between (0.10  -0.50) range for all the stations.
+# Hence no station is being upgraded.
+
+
+#Excercise 5
+"No ,I dont  recommend the consortium perform the upgrade based on Excercise 4 .
+The reason is :  pf i.e. probability of failure is generally ranging between (0.50 - 0.70)
+and therefore the mean time between failure is always equal to decimal values and never greater than 1.
+Hence there wont be less blackout's even after reducing each station probability by half.Therefore 
+there is no station i=1,2,....15 that will be upgraded." 
