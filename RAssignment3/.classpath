@@ -8,6 +8,6 @@
 	<classpathentry kind="lib" path="C:/Users/Aastha Jain/Desktop/tebert/R/commons-math3-3.6.1/commons-math3-3.6.1-tests.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Aastha Jain/Desktop/tebert/R/commons-math3-3.6.1/commons-math3-3.6.1-test-sources.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Aastha Jain/Desktop/tebert/R/commons-math3-3.6.1/commons-math3-3.6.1-tools.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Aastha Jain/Desktop/tebert/R/mallet-2.0.7.jar/mallet-2.0.7.jar" sourcepath="C:/Users/Aastha Jain/Downloads/mallet-2.0.7-sources.jar/mallet-2.0.7-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Aastha Jain/Desktop/tebert/R/mallet-2.0.7.jar/mallet-2.0.7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
