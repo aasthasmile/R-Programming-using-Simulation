@@ -1,15 +1,17 @@
 package pkg;
 
 import java.util.ArrayList;
+
+import cc.mallet.fst.confidence.IsolatedSegmentTransducerCorrector;
 import cc.mallet.util.*;
 import java.util.PriorityQueue;
 
-import org.apache.commons.math3.analysis.function.Constant;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
+import org.w3c.dom.events.EventException;
 
 
-/*All the events in the priority Queue is of type MessageArrivalEvents having three fields implmented using ArrayList
+/*All the events in the priority Queue is of type MessageArrivalEvents having three fields implemented using ArrayList
  * <event code,time of Arrival ,Channelno/MessageId>*/
 class MessageArrivalEvents extends ArrayList implements Comparable {
 
@@ -32,7 +34,7 @@ class MessageArrivalEvents extends ArrayList implements Comparable {
 	}
 }
 
-public class DiscreteEventSimulation {
+   public class DiscreteEventSimulation {
 
 	//check whether the Weather is Good Weather so boolean isGood set to True
 	public boolean isGood = false;
@@ -74,14 +76,17 @@ public class DiscreteEventSimulation {
 	//At end of 200th hour, total number of messages (including k+1 additional copies) sent by Wolf-communication System.
 	public static int totalResendMessages;
 	
-	//At end of 10000th Simulation ,probability of messages being lost for Excercise 1.
+	//At end of 10000th Simulation ,probability of messages being lost for Exercise 1.
 	public double probabilityOfLostMessages;
 	
-	//At end of 10000th Simulation ,probability of messages being lost for Excercise 4(with a k additional copies).
+	//At end of 10000th Simulation ,probability of messages being lost for Exercise 4 ( with a k additional copies).
 	public double probabilityOfLostMessagesPrime;
 	
 	//Number of additional copies
 	public int k=1;
+	
+	//alice's message need to generated at 100th hour
+	public int aliceOrginalMessage=100*changeHourstoMinutes;
 	
 	
 	
@@ -287,17 +292,29 @@ public class DiscreteEventSimulation {
 		
 	}
  
-	public static int eventSimulation(int k) {
-      
+public static int eventSimulation(int k,boolean isStrategy) {
+		
 		DiscreteEventSimulation eventSim = new DiscreteEventSimulation();
-	
-
-        PriorityQueue priorityQueue = new PriorityQueue();
+		
+		/*Radio-transmitted messages are processed as per the Channel availability ,hence we need a priorityQueue to
+		 * implement MessageArrival Events according to their arrival time(priority).
+		 */
+		PriorityQueue priorityQueue = new PriorityQueue();
 
 		MessageArrivalEvents maEvent = new MessageArrivalEvents();
 		
+		/* Radio-transmitted messages arrive according to Poisson process ,therefore define X=(-log (1-U))/lambda 
+		 * or equivalently X=(-log U)/lambda where U has has the continuous uniform distribution over the interval (0,1)
+		 * and lambda is the message inter-arrival time */
+		 
 		UniformRealDistribution poissonSampled = new UniformRealDistribution();
 		int sampleValue = (int) (((-1) * ((double) Math.log(poissonSampled.sample()) / (double) eventSim.lambda)) * 60);
+		
+		/*Every Event added to PriorityQueue is made of three Values:<Message Code,Arrival time,messageId/Channel No>
+		 * where Message Code = Message Arrived(MA) <MA,arrival-time,messageId>
+		 * 						Message Processed(MP) <MP,arrival-time,channelNo at which message processed>
+		 * 						GoodWeather(GW) or BadWeather(BW) <GW/BW,arrival-time,null>
+		 */
 		
 		maEvent.add(0, "MA");
 		maEvent.add(1, sampleValue);
@@ -305,54 +322,52 @@ public class DiscreteEventSimulation {
 		
 		eventSim.samplePoissonValue = sampleValue;
 		
-		int orginialTotalMessages=0;
-		
+		/*Message arriving in the time interval [0,100] are added to the Future Event List or priorityQueue.
+		 * Last Message arrives at 100th hour.
+		 */
 		while (eventSim.samplePoissonValue <= 200*changeHourstoMinutes) {
 			
-			
+			priorityQueue.add(maEvent);
 			//System.out.println("<" + maEvent.get(0) + "," + maEvent.get(1) + "," + maEvent.get(2) + ">");
-
+			//Incrementing the messageId by one after adding one Message Arrival.
 			eventSim.noofsentMessages += 1;
 			
+			//Poisson process X=(-log U)/lambda used to Sample out a Value.
 			sampleValue = (int) (((-1) * ((double) Math.log(1-poissonSampled.sample()) / (double) eventSim.lambda))* 60);
 			
 			eventSim.samplePoissonValue = eventSim.samplePoissonValue + sampleValue;
-
 			
-			
-			if(eventSim.samplePoissonValue >= 100*changeHourstoMinutes && eventSim.samplePoissonValue <= 200*changeHourstoMinutes){
-				for(int i=0;i<=k;i++){
-					maEvent = new MessageArrivalEvents();
-					maEvent.add(0, "MA");
-					maEvent.add(1, (int)(eventSim.samplePoissonValue + i*60));
-					maEvent.add(2, eventSim.noofsentMessages);
-					priorityQueue.add(maEvent);
-			       
-				}
-			}
-			else{
 			maEvent = new MessageArrivalEvents();
 			maEvent.add(0, "MA");
 			maEvent.add(1, eventSim.samplePoissonValue);
 			maEvent.add(2, eventSim.noofsentMessages);
-			orginialTotalMessages=eventSim.noofsentMessages;
-			priorityQueue.add(maEvent);
-			}
 			
+				
 		}
 		
-									
-		int additionalMessages=(k+1)*(eventSim.noofsentMessages-orginialTotalMessages);
+		if(isStrategy==true){
+		/*Alice's Message MA send at 100th hour with k copies attached to it totaling to (k+1) copies of the message*/
+      
+        	for(int i=0;i<=k;i++){
+				maEvent = new MessageArrivalEvents();
+				maEvent.add(0, "MA");
+				maEvent.add(1, (int)(eventSim.aliceOrginalMessage+ i*60));
+				maEvent.add(2, "AliceMessage");
+				priorityQueue.add(maEvent);
+			}
 		
-		totalResendMessages= eventSim.noofsentMessages+additionalMessages;
+		}
+		totalsentMessages=eventSim.noofsentMessages;
+		//During 0-200 hours i.e. 12000 minutes, total number of messages sent by Wolf-communication System
+		totalResendMessages = eventSim.noofsentMessages+(k+1);
 		
-		/*The Good Weather is normally distributed with mean and standardDeviation as 90 and 10 minutes respectively.
-		 * Good Weather event always occurs at T=0.
-		 */
+		/*The Good Weather is normally distributed with mean and standardDeviation as 90 and 10 minutes respectively.*/
+	
 		NormalDistribution sampleValueGoodWeather = new NormalDistribution(meanGoodWeather,standardDeviationGoodWeather);
 		int sampleX = (int) sampleValueGoodWeather.sample();
 		eventSim.durationGoodWeather = sampleX;
 		
+		 /* Good Weather event always occurs at T=0.*/
 		MessageArrivalEvents goodWeatherFirst = new MessageArrivalEvents();
 		goodWeatherFirst.add(0, "GW");
 		goodWeatherFirst.add(1, 0);
@@ -367,46 +382,43 @@ public class DiscreteEventSimulation {
 		badEvent.add(2, "null");
 		priorityQueue.add(badEvent);
 
-		
-		boolean[] checkMessageProcessed=new boolean[eventSim.noofsentMessages+1];
-		int[] messagecounter=new int[eventSim.noofsentMessages+1];
+		int messageIndicator=0;
 		
 		/*While the FEL i.e. priority Queue is not empty,process the events in
 		 sequential order*/
 		while (!priorityQueue.isEmpty()) {
 			
 			MessageArrivalEvents e1 = (MessageArrivalEvents) priorityQueue.poll();
-		
 			//System.out.println("<" + e1.get(0) + "," + e1.get(1) + "," + e1.get(2) + ">");
-			
+
+			//Checking The FEL Future event List for the MA(Message Arrived)
 			if (e1.get(0) == "MA") {
-				
-				if (eventSim.stateForChannel1 == 1 && eventSim.stateForChannel2 == 1 && eventSim.stateForChannel3 == 1) {
+			
+			if (eventSim.stateForChannel1 == 1 && eventSim.stateForChannel2 == 1 && eventSim.stateForChannel3 == 1) {
 					
-					if((int)e1.get(1)<=100*changeHourstoMinutes){					
-					             eventSim.messagesLostCounter += 1;
-					             //System.out.println("Message lost counter:"+eventSim.messagesLostCounter);
-					            
-					}
-					
-					else if((int)e1.get(1)>=100*changeHourstoMinutes &&(int)e1.get(1)<=200*changeHourstoMinutes ){
-					
-						if(!checkMessageProcessed[(int)e1.get(2)]){
-							
-							messagecounter[(int)e1.get(2)]+=1;
+						eventSim.messagesLostCounter += 1;
+
+					if (e1.get(2) == "AliceMessage") {
+
+						messageIndicator++;
+						//System.out.println("Alice message lost for t ="+(int)e1.get(1));
+						if (messageIndicator == k + 1)
+							messageIndicator=1;
 						
-							if(messagecounter[(int)e1.get(2)]== k+1 )
-							 
-								eventSim.messagesLostCounter += 1;
-						      //System.out.println("Message lost counter:"+eventSim.messagesLostCounter);
-						}
-						else{
-							eventSim.messagesLostCounter += 0;
-						}
 					}
-					//System.out.println("Lost message count: "+eventSim.messagesLostCounter );
-				} 
+		      	} 
 				else {
+					
+					/*Deﬁne CDF F(x)=P(F−1(U)≤ x) then using Inverse Transform Method X = F−1(U), where U has the
+					 * continuous uniform distribution over the interval (0,1).
+					 * Good Weather has F(x) =x then X = F−1(U)
+					 * Bad Weather has F(x) =x^3 then X = F−1(cube-root(U)) 
+					 */
+					if (e1.get(2) == "AliceMessage") {
+						messageIndicator=0;
+						return messageIndicator;
+					}
+					
 					UniformRealDistribution sampleUniformValue = new UniformRealDistribution(0.0, 1.0);
 					
 					int sampleU = (int) (sampleUniformValue.sample() * changeHourstoMinutes);
@@ -414,12 +426,21 @@ public class DiscreteEventSimulation {
 					if (eventSim.isbad == true) 
 						sampleU = (int) (Math.cbrt(sampleUniformValue.sample()) * changeHourstoMinutes);
 					
+					
+					/*Every Processed Message added to PriorityQueue is ArrayList of three Values:<Message Code,Arrival time,Channel No>
+					 * where Message Code = Message Processed(MP) <"MP",arrival-time,channelNo at which message processed>
+					 */ 						
+					
 					MessageArrivalEvents messageProcessed = new MessageArrivalEvents();
 
 					messageProcessed.add(0, "MP"); 
 
 					messageProcessed.add(1, ((int) e1.get(1) + sampleU));
 					
+					/*Three dedicated channels-channel1 ,channel2,channel3 are available to handle the incoming messages .
+					 * When Message arrives,it need to be processed through one of the three possible available channels
+					 *depending on which channel is currently available.(0-Available,1-Busy) */
+
 					if (eventSim.stateForChannel1 == 0) {
 						messageProcessed.add(2, 1);
 						eventSim.stateForChannel1 = 1;
@@ -430,16 +451,19 @@ public class DiscreteEventSimulation {
 						messageProcessed.add(2, 3);
 						eventSim.stateForChannel3 = 1;
 					}
-					
+				
 					priorityQueue.add(messageProcessed);
-					
-					checkMessageProcessed[((int)e1.get(2))]= true;
 				}
 				
 			} 
-		        else if (e1.get(0) == "MP") {
+			
+			/* Checking The FEL Future event List for the MP(Message processed) so that the channel that was Busy(1)
+			 * processing message can now be set to available(0).*/
+			else if (e1.get(0) == "MP") {
 				
-		        	int i = (int) e1.get(2);
+				/*Extracting the Channel No at which Message has been processed
+				 * and setting the channel as free.(0-AVAILABLE ,1-BUSY)*/
+				int i = (int) e1.get(2);
 				
 				switch (i) {
 				case 1: { eventSim.stateForChannel1 = 0; 	break;	}
@@ -449,7 +473,6 @@ public class DiscreteEventSimulation {
 				}
 
 			} 
-			
 			
 			else if (e1.get(0) == "GW" && (int) e1.get(1) < 200*changeHourstoMinutes) {
 				
@@ -489,44 +512,83 @@ public class DiscreteEventSimulation {
 				
 			}
 		}
-				
-		return eventSim.messagesLostCounter;
+
+		if(isStrategy==true){
+			return messageIndicator;
+		}
+		else{
+		/*Total number of messages lost in one Simulation of Radio transmitted message for a time interval of [0,100]*/
+		   return eventSim.messagesLostCounter;
+		}
+		
 	}
 	
-
+	
+  /*IMC perform 10000 simulations on the data in the FEL list that have 4 arguments:
+   * n - number of simulations ,delta- 0.90 as confidence interval ,ResendMessages- Alice's strategy to be applied
+   * in order to decrease the probability that her message is lost  */
 	static double imc(int n, double delta,boolean ResendMessages,int k ) {
 		
+		//Number of messages lost in each individual simulation of [0,100] or [0,200] hour
 		int messagesLostIndividual = 0;
+		
+		//Number of messages Sent in  each individual simulation of [0,100] or [0,200] hour
 		int messagesSentIndividual = 0;
+		
+		//In 10000th Simulations ,number of total message that are sent by the Wolf-communicating system.
 		int totalMessagesSent = 0;
+		
+		//In 10000th Simulations ,number of total message that are lost.
 		int totalmessagesLost = 0;
+		
 		int sumsq = 0;
 
+		/*Looping for 10,000th Simulations*/
 		for (int i = 0; i < n; i++) {
 			
-			
+			/*Alice's strategy(Exercise 4) requires the k messages to be Resend during the interval [100-200]  beside the
+			 * original message hence summing to (k+1) messages plus messages that were sent in the interval [0-100]*/
 			if(ResendMessages==true && k>=1){
-				messagesLostIndividual = DiscreteEventSimulation.eventSimulation(k);
+				messagesLostIndividual = DiscreteEventSimulation.eventSimulation(k,true);
+				
 				messagesSentIndividual = DiscreteEventSimulation.totalResendMessages;
 			}
+			/* This calculates message lost and messages sent in the interval of [0,100] hours. */
 			else{
-			    messagesLostIndividual = DiscreteEventSimulation.eventSimulation();
+				k=0;
+			    messagesLostIndividual = DiscreteEventSimulation.eventSimulation(k,false);
 			    messagesSentIndividual = DiscreteEventSimulation.totalsentMessages;
 			}
-			
+			//System.out.println(totalmessagesLost+" = " + totalmessagesLost +"+"+  messagesLostIndividual);
 			totalmessagesLost = totalmessagesLost + messagesLostIndividual;
 			totalMessagesSent = totalMessagesSent + messagesSentIndividual;
 			
 			sumsq = sumsq + messagesLostIndividual * messagesLostIndividual;
 		}
-		double lambda = totalmessagesLost / n;
+		
+		/*Average number of messages that get lost in 10,000 simulations is equal to total messages being lost divided by total number of simulations*/
+		double lambda = ((double)totalmessagesLost / (double)n);
+		
+		//Sample Variance 
 		double sigmasq = (sumsq - (lambda * lambda * n)) / (n - 1);
+		
+		//Standard Deviation
 		double stdDeviation = (double) Math.sqrt(sigmasq);
+		
+		//Standard Error
 		double se = (double) Math.sqrt(sigmasq / n);
+		
+		//Relative Error
 		double re = se / lambda;
+		
+		//qdelta calculated using qnorm i.e. inverse cumulative distribution function to sample out qdelta.
 		double qdelta = (double) StatFunctions.qnorm((1 + delta) / 2, false);
+		
+		//Confidence interval range [ci_left,ci_right]
 		double ci_left = lambda - qdelta * se;
 		double ci_right = lambda + qdelta * se;
+		
+		// Probability that a sent message gets lost will be total Messages Lost divided by total messages Sent.
 		double prob=((double) totalmessagesLost / (double) totalMessagesSent);
 
 		System.out.println("Total Number of samples:" + n );
@@ -540,16 +602,23 @@ public class DiscreteEventSimulation {
 		System.out.println("Standard error:" + se );
 		System.out.println(delta + "confidence interval: [" + ci_left + "," + ci_right + "]\n\n");
 
-		return prob;
+		if(ResendMessages==true){
+		     return lambda;
+		}else{
+			return prob;
+		}
 	}
+	
+	/* Using Control Variable Strategy for Variance Reduction i.e. Z= N + c(M-E[M]) where
+	 * N the number of lost messages  and M the number of sent messages during the interval [0,100] with M as a control variable
+	 *  and c is minimizing strategy and E[M] is the Expectation of sent Messages*/
 
 	static void ControlVariable() {
-		// if N is the number of lost Messages then M is number of sent messages
-
-		//1000 additional pre-processing samples to compute control variable constant c
+		
+		/*1000 additional pre -processing samples to compute control variable constant c*/
 		double lostMessages[] = new double[1000];
 		double sentMessages[] = new double[1000];
-		double z[] = new double[10000];
+		
 		
 		for (int i = 0; i < 1000; i++) {
 			lostMessages[i] = DiscreteEventSimulation.eventSimulation();
@@ -559,24 +628,27 @@ public class DiscreteEventSimulation {
 		Univariate lost = new Univariate(lostMessages);
 		Univariate sent = new Univariate(sentMessages);
 		
+		/*Calculating co-variance using Statfunction.cov(X,Y) where X and Y is calculated using array of lost messages
+		 * and array of sent messages. */
 		double covarianceOfSentAndLostMessages = StatFunctions.cov(lost, sent);
 
 		double VarianceofsentMessages = sent.variance();
 		double VarianceoflostMessages = lost.variance();
 		double ExpectationofSentMessages = sent.mean();
-		//double ExpectationoflostMessages = lost.mean();
 		
+		/* constant c is the minimization factor whose formula is c = −Cov(N,M) /Var(M) */		
 		double c= (-1) * ((double) (covarianceOfSentAndLostMessages) / (double) (VarianceofsentMessages));
+		
 		
 		double lostMessagesnew[] = new double[10000];
 		double sentMessagesnew[] = new double[10000];
+		double z[] = new double[10000];
 		
 		for (int i = 0; i < 10000; i++) {
-			
 			lostMessagesnew[i] = DiscreteEventSimulation.eventSimulation();
 			sentMessagesnew[i] = DiscreteEventSimulation.totalsentMessages;
 			
-			// Control variable equation
+			// Control variable equation 
 			z[i] = lostMessagesnew[i] + c * (sentMessagesnew[i] - ExpectationofSentMessages);
 		}
 		
@@ -587,6 +659,9 @@ public class DiscreteEventSimulation {
 		System.out.println("Constant   is:\t" + c);
 		System.out.println("Variance of N:\t" + VarianceoflostMessages);
 		System.out.println("Variance of Z:\t" + VarianceofZ);
+		
+		
+		
 		System.out.println("Percentage Reduction in Variance is:\t" +((VarianceoflostMessages-VarianceofZ)/(VarianceoflostMessages))*100);
 
 	}
@@ -595,54 +670,51 @@ public class DiscreteEventSimulation {
 		
 		DiscreteEventSimulation eventObj=new DiscreteEventSimulation();	
 		
-		System.out.println("Start");
+		//Initialize k with the least number of copies required i.e. k=1
 		eventObj.k = 1;
-		DiscreteEventSimulation.eventSimulation();
-		eventObj.probabilityOfLostMessages=DiscreteEventSimulation.imc(100000, 0.90,false,0);
 		
-		DiscreteEventSimulation.eventSimulation(eventObj.k);
-		eventObj.probabilityOfLostMessagesPrime=DiscreteEventSimulation.imc(100000, 0.90,true,eventObj.k);
+		//Probability of message being lost during [0-200] hours without the Alice's Strategy.
+		eventObj.probabilityOfLostMessages=DiscreteEventSimulation.imc(10000, 0.90,false,0);
 		
-		System.out.println("Initiallly "+eventObj.probabilityOfLostMessagesPrime+" <"+(eventObj.probabilityOfLostMessages/2));
+		//Probability of message being lost during [0-200] hours with the Alice's Strategy.
+		eventObj.probabilityOfLostMessagesPrime=DiscreteEventSimulation.imc(10000, 0.90,true,eventObj.k);
+		
+		System.out.println("Initiallly for k=1 "+eventObj.probabilityOfLostMessagesPrime+" \t"+(eventObj.probabilityOfLostMessages/2));
 	    	
-		while((eventObj.probabilityOfLostMessagesPrime<(eventObj.probabilityOfLostMessages/2)) && eventObj.k>=1){
+		/*As per the Alice's Strategy ,percentage of lost messages is no greater than (p2/2)×100.
+		 * percentage of lost messages is probabilityOfLostMessagesPrime in my program AND
+		 * (p2/2)×100 is is probability of Lost messages .*/
+		while(((double)(eventObj.probabilityOfLostMessagesPrime)) > ((double)(eventObj.probabilityOfLostMessages/(double)2))){
 			eventObj.k+=1;
 			
+			eventObj.probabilityOfLostMessages=DiscreteEventSimulation.imc(10000, 0.90,false,0);
+			
+			eventObj.probabilityOfLostMessagesPrime=DiscreteEventSimulation.imc(10000, 0.90,true,eventObj.k);
+			
 			System.out.println("k "+eventObj.k );
-			
-			
-			//DiscreteEventSimulation.eventSimulation();
-			eventObj.probabilityOfLostMessages=DiscreteEventSimulation.imc(100000, 0.90,false,0);
-			
-			DiscreteEventSimulation.eventSimulation(eventObj.k);
-			eventObj.probabilityOfLostMessagesPrime=DiscreteEventSimulation.imc(100000, 0.90,true,eventObj.k);
-			//eventObj.k++;
-			
-			System.out.println(eventObj.probabilityOfLostMessagesPrime*100+" <"+(eventObj.probabilityOfLostMessages/2)*100);
+			System.out.println((eventObj.probabilityOfLostMessagesPrime)+" \t"+(eventObj.probabilityOfLostMessages/2));
 		}
+		System.out.println("Least k needed in 10,000 simulation trials of the strategy(Alice's):"+eventObj.k);
 	}
-
-	
-	
-
 
 
 	public static void main(String[] args) {
 
-		// Excercise 1
-		System.out.println("Excercise 1: \n No of messages lost  :" + DiscreteEventSimulation.eventSimulation());
+		// Exercise 1
+		//System.out.println("Excercise 1: \n No of messages lost :" + DiscreteEventSimulation.eventSimulation());
 
-		// Excercise 2
+		// Exercise 2
 		System.out.println("\n\n\nExcercise 2:");
-		//DiscreteEventSimulation.imc(10000,0.90,false);
+		//DiscreteEventSimulation.imc(10000,0.90,false,0);
 
-		// Excercise 3
+		// Exercise 3
 		System.out.println("\n\n\nExcercise 3:");
 		//DiscreteEventSimulation.ControlVariable();
 		
-		System.out.println("\n\n\nExcercise 4:");
-	    DiscreteEventSimulation.SimulationResults();
 		
+		System.out.println("\n\n\nExcercise 4:");
+	    //DiscreteEventSimulation.SimulationResults();
+		DiscreteEventSimulation.imc(10000, 0.90,true,1);
 	}
 
 }
